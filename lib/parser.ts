@@ -86,6 +86,8 @@ const CONTACT_HINT = /@|\b(?:phone|mobile|cell|email|e-mail|linkedin|github|port
 
 /* ---------------- Helpers ---------------- */
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+/** Join a wrapped line to the text before it; "Event-" + "Driven" becomes "Event-Driven". */
+const joinText = (a: string, b: string) => (/[A-Za-z]-$/.test(a.trim()) && /^[A-Za-z]/.test(b.trim()) ? norm(a.trim() + b.trim()) : norm(a + " " + b));
 const key = (s: string) => s.toLowerCase().replace(/[^a-z& ]+/g, " ").replace(/\s+/g, " ").trim();
 const words = (s: string) => norm(s).split(" ").filter(Boolean).length;
 const isCaps = (s: string) => /[A-Z]/.test(s) && s === s.toUpperCase() && /[A-Z]{3}/.test(s);
@@ -232,7 +234,7 @@ export function parseResume(lines: RichLine[], source: ParseResult["source"]): P
         (isPdf && !endsSentence(target[last])) ||
         (source === "text" && !endsSentence(target[last]) && /^[a-z(]/.test(l.text))
       );
-      if (cont) target[last] = norm(target[last] + " " + l.text);
+      if (cont) target[last] = joinText(target[last], l.text);
       else { target.push(norm(l.text)); last = target.length - 1; }
       roles[i] = role;
       lastLine = l;
@@ -282,7 +284,11 @@ export function parseResume(lines: RichLine[], source: ParseResult["source"]): P
         /[,&/]$/.test(last.items) ||
         (/^[a-z]/.test(t) && !/:/.test(t))
       ) && !(l.segments && l.segments.length > 1) && !/^[^:]{2,45}:\s/.test(t);
-      if (isCont) { last.items = norm(last.items + " " + t); k++; continue; }
+      if (isCont) { last.items = joinText(last.items, t); k++; continue; }
+      // PDF table row whose label cell wrapped: "Methodologies/Design   ...Event-" then "patterns   Driven ...".
+      if (isPdf && last && l.segments && l.segments.length === 2 && /^[a-z]/.test(l.segments[0]) && words(l.segments[0]) <= 3 && !/[.]$/.test(last.items)) {
+        last.cat = joinText(last.cat, l.segments[0]); last.items = joinText(last.items, l.segments[1]); k++; continue;
+      }
       addSkillLine(t, l.segments);
       k++;
     }
@@ -326,7 +332,7 @@ export function parseResume(lines: RichLine[], source: ParseResult["source"]): P
       if (!l.bullet && LABEL_ENV.test(t)) {
         const e = cur();
         const val = t.replace(LABEL_ENV, "").trim();
-        e.environment = e.environment ? norm(e.environment + " " + val) : val;
+        e.environment = e.environment ? joinText(e.environment, val) : val;
         e._body = true; roles[i] = "environment"; lastKind = "env";
         continue;
       }
@@ -396,9 +402,9 @@ export function parseResume(lines: RichLine[], source: ParseResult["source"]): P
     }
     function appendLast(t: string) {
       const e = E!;
-      if (lastKind === "resp") e.responsibilities[e.responsibilities.length - 1] = norm(lastText() + " " + t);
-      else if (lastKind === "desc") e.description[e.description.length - 1] = norm(lastText() + " " + t);
-      else e.environment = norm(e.environment + " " + t);
+      if (lastKind === "resp") e.responsibilities[e.responsibilities.length - 1] = joinText(lastText(), t);
+      else if (lastKind === "desc") e.description[e.description.length - 1] = joinText(lastText(), t);
+      else e.environment = joinText(e.environment, t);
     }
     function roleOfKind(k: "resp" | "desc" | "env"): LineRole { return k === "resp" ? "responsibility" : k === "desc" ? "description" : "environment"; }
   }
@@ -445,17 +451,29 @@ export function parseResume(lines: RichLine[], source: ParseResult["source"]): P
     let s = v;
     const d = findDate(s); if (d) { if (!e.dates) e.dates = d; s = s.replace(d, " "); }
     s = balance(trimSep(s));
-    const m = s.match(CLIENT_LOC);
-    if (m && !e.location) { e.client = balance(trimSep(m[1])); e.location = trimSep(m[2]); }
+    const sp = splitClientLoc(s);
+    if (sp && !e.location) { e.client = sp[0]; e.location = sp[1]; }
     else e.client = s;
+  }
+  /** "Bank of America, Charlotte, NC" -> ["Bank of America", "Charlotte, NC"]; keeps company words in the name. */
+  function splitClientLoc(s: string): [string, string] | null {
+    const m = s.match(CLIENT_LOC);
+    if (!m) return null;
+    let loc = trimSep(m[2]);
+    const parts = loc.split(/\s*,\s*/);
+    // "Toshiba Software, India": "Software" is part of the company, not a city.
+    while (parts.length > 1 && COMPANY_WORDS.test(parts[0])) { parts.shift(); loc = parts.join(", "); }
+    const at = s.lastIndexOf(loc);
+    const client = balance(trimSep(s.slice(0, at)));
+    return client ? [client, loc] : null;
   }
   function assignPiece(e: ClientEntry, p: string) {
     if (LOCATION_ONLY.test(p) && !e.location) { e.location = trimSep(p); return; }
     const roleLike = ROLE_WORDS.test(p) && !COMPANY_SUFFIX.test(p);
     if (roleLike && !e.role) { e.role = p; return; }
     if (!e.client) {
-      const m = p.match(CLIENT_LOC);
-      if (m && !e.location) { e.client = balance(trimSep(m[1])); e.location = trimSep(m[2]); }
+      const sp = splitClientLoc(p);
+      if (sp && !e.location) { e.client = sp[0]; e.location = sp[1]; }
       else e.client = p;
       return;
     }

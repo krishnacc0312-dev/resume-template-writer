@@ -30,6 +30,7 @@ export async function renderFile(data: ResumeData, templateId: number, format: "
 export default function Preview({ data, templateId, onPages }: { data: ResumeData; templateId: number; onPages: (n: number) => void }) {
   const box = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState("Rendering preview…");
+  const [ready, setReady] = useState(false);
   const seq = useRef(0);
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function Preview({ data, templateId, onPages }: { data: ResumeDat
         if (my !== seq.current || !box.current) return;
         box.current.replaceChildren(...canvases);
         onPages(pdf.numPages);
-        setStatus("");
+        setStatus(""); setReady(true);
       } catch {
         if (my === seq.current) setStatus("The preview couldn't be drawn. Downloads may still work.");
       }
@@ -67,8 +68,10 @@ export default function Preview({ data, templateId, onPages }: { data: ResumeDat
 
   return (
     <div>
-      {status && <p className="muted">{status}</p>}
-      <div className="pages" ref={box} />
+      {status && ready && <p className="muted" aria-live="polite">{status}</p>}
+      {status && !ready && !status.startsWith("Rendering") && <p className="err">{status}</p>}
+      {!ready && status.startsWith("Rendering") && <div className="pages"><div className="skeleton" aria-label="Loading preview" /></div>}
+      <div className="pages" ref={box} style={ready ? undefined : { display: "none" }} />
     </div>
   );
 }
