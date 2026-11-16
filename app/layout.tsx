@@ -15,7 +15,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(site),
   applicationName: "Resume Template Writer",
   appleWebApp: { capable: true, title: "Resume Writer", statusBarStyle: "default" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
+  // Declared explicitly (with a version tag so browsers fetch the new logo instead of a cached icon).
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/icon.svg?v=3", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png?v=3", type: "image/png", sizes: "192x192" }
+    ],
+    shortcut: "/favicon.ico?v=3",
+    apple: [{ url: "/icons/apple-touch-icon.png?v=3", sizes: "180x180" }]
+  },
   openGraph: {
     type: "website", siteName: "Resume Template Writer", url: "/",
     title: "Resume Template Writer: ATS-friendly resumes, word for word",
