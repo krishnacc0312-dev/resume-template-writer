@@ -293,3 +293,30 @@ details summary { cursor: pointer; margin-top: 6px; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* ============ Sample hover actions and preview viewer ============ */
+.tpl { position: relative; }
+.thumb-actions { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(14, 20, 34, .55); backdrop-filter: blur(1.5px); opacity: 0; transition: opacity .3s var(--ease); }
+.tpl:hover .thumb-actions, .tpl:focus-within .thumb-actions { opacity: 1; }
+.ta-btn { all: unset; box-sizing: border-box; cursor: pointer; min-width: 132px; text-align: center; padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 14px;
+  background: #fff; color: #14161a; box-shadow: 0 6px 18px rgba(0,0,0,.25); transform: translateY(8px); transition: transform .35s var(--ease), background .2s; }
+.ta-btn.ghost { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.6); box-shadow: none; }
+.tpl:hover .ta-btn, .tpl:focus-within .ta-btn { transform: none; }
+.ta-btn:hover { background: #eef2ff; }
+.ta-btn.ghost:hover { background: rgba(255,255,255,.26); }
+.ta-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (hover: none) {
+  .thumb-actions { inset: auto 0 0 0; flex-direction: row; padding: 8px; gap: 8px; opacity: 1; background: linear-gradient(transparent, rgba(14,20,34,.7)); backdrop-filter: none; }
+  .ta-btn { min-width: 0; flex: 1; padding: 8px 6px; font-size: 13px; transform: none; }
+  .ta-btn.ghost { background: rgba(14, 20, 34, .82); border-color: rgba(255,255,255,.35); }
+}
+.viewer { background: var(--card); border: 1px solid var(--line); border-radius: 20px; width: min(920px, 100%); height: min(94vh, 1100px); display: flex; flex-direction: column;
+  box-shadow: var(--shadow-lg); animation: modalIn .45s var(--ease); overflow: hidden; }
+.viewer-head, .viewer-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px; }
+.viewer-head { border-bottom: 1px solid var(--line); }
+.viewer-head h3 { font-size: 18px; }
+.viewer-foot { border-top: 1px solid var(--line); }
+.viewer-foot > p { flex: 1; min-width: 200px; }
+.viewer-body { flex: 1; overflow: auto; background: var(--bg-soft); }
+.viewer-body .pages { border: 0; border-radius: 0; background: transparent; max-height: none; overflow: visible; }

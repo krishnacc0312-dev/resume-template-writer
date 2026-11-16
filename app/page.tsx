@@ -3,6 +3,7 @@ import { TEMPLATES } from "@/lib/templateMeta";
 import Reveal from "@/components/Reveal";
 import Splash from "@/components/Splash";
 import Faq from "@/components/Faq";
+import SamplesGallery from "@/components/SamplesGallery";
 
 const STEPS = [
   ["Add your resume", "Upload a PDF or Word file, or paste the text."],
@@ -80,22 +81,9 @@ export default function Home() {
           <Reveal className="section-head">
             <span className="eyebrow">Samples</span>
             <h2>Pick the look you like</h2>
-            <p>All samples have the same sections: Header, Summary, Skills, Clients and Education. Click one to start with it.</p>
+            <p>All samples have the same sections: Header, Summary, Skills, Clients and Education. Hover over a sample to preview or download it, or click it to start.</p>
           </Reveal>
-          <div className="grid">
-            {TEMPLATES.map((t, i) => (
-              <Reveal key={t.id} delay={(i % 4) * 70}>
-                <Link href={`/convert?sample=${t.id}`} className="tpl" style={{ textDecoration: "none", color: "inherit" }}>
-                  <div className="thumb">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/thumbs/${t.id}.png`} alt={`${t.name} sample`} loading="lazy" />
-                  </div>
-                  <span className="tname">{t.id}. {t.name}</span>
-                  <span className="tdesc">{t.desc}</span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
+          <SamplesGallery />
         </div>
       </section>
 
