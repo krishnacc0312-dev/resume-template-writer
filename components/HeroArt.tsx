@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useSampleTools } from "./SampleTools";
 import { TEMPLATES } from "@/lib/templateMeta";
 
-const SHOWN = [3, 11, 9];
+const SHOWN = [2, 1, 8];
 
 /** The three floating samples in the banner. Hover for Preview and Download. */
 export default function HeroArt() {

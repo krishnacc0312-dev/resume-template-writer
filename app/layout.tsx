@@ -28,11 +28,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website", siteName: "Resume Template Writer", url: "/",
     title: "Resume Template Writer: ATS-friendly resumes, word for word",
-    description: "Rebuild your resume in one of 11 clean, ATS-friendly templates. Your text stays word for word. PDF and Word. Free, no sign-up, no AI."
+    description: "Rebuild your resume in one of 10 clean resume samples. Your text stays word for word. PDF and Word. Free, no sign-up, no AI."
   },
   twitter: { card: "summary_large_image", title: "Resume Template Writer", description: "Your resume, rebuilt in a clean template. Word for word." },
   title: { default: "Resume Template Writer: ATS-friendly resumes, word for word", template: "%s | Resume Template Writer" },
-  description: "Upload your resume and rebuild it in one of 11 clean, ATS-friendly templates. Your text stays word for word. Download Word or PDF. Free, no sign-up, no AI."
+  description: "Upload your resume and rebuild it in one of 10 clean resume samples, in Calibri, Cambria or Times New Roman. Your text stays word for word. Download Word or PDF. Free, no sign-up, no AI."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ResumeData } from "@/lib/types";
 
-export type LayoutOptions = { pageSize?: "letter" | "a4"; accent?: string | null; fitPages?: number };
+export type LayoutOptions = { pageSize?: "letter" | "a4"; accent?: string | null; fitPages?: number; font?: "calibri" | "cambria" | "times" | null; size?: number | null };
 export type RenderMeta = { pages: number; scale: number; fits: boolean };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
