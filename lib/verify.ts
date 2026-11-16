@@ -2,7 +2,7 @@
 import type { LineRole, ResumeData } from "./types";
 
 const cmp = (s: string) =>
-  s.replace(/[•]/g, " ").replace(/[,;|]/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+  s.replace(/([A-Za-z])-\s+(?=[A-Za-z])/g, "$1-").replace(/[\u2022\uF0B7]/g, " ").replace(/[,;|]/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
 
 export type Report = {
   ok: boolean;
@@ -35,7 +35,24 @@ const SKIP: LineRole[] = ["heading", "label", "ignored", "other"];
 export function verify(data: ResumeData, lines: string[], roles: LineRole[]): Report {
   const source = cmp(lines.join(" "));
   const fields = fieldsOf(data);
-  const changed = fields.filter((f) => !source.includes(cmp(f.text)));
+  const srcTokens = source.split(/[\s-]+/).filter(Boolean);
+  // Text from a wrapped table cell alternates with the next column in the original, so also
+  // accept a field whose words appear in the same order with only small gaps between them.
+  const inOrder = (t: string) => {
+    const tk = t.split(/[\s-]+/).filter(Boolean);
+    for (let start = 0; start < srcTokens.length; start++) {
+      if (srcTokens[start] !== tk[0]) continue;
+      let pos = start, ok = true;
+      for (let j = 1; j < tk.length && ok; j++) {
+        let found = -1;
+        for (let q = pos + 1; q <= Math.min(srcTokens.length - 1, pos + 25); q++) if (srcTokens[q] === tk[j]) { found = q; break; }
+        if (found < 0) ok = false; else pos = found;
+      }
+      if (ok) return true;
+    }
+    return false;
+  };
+  const changed = fields.filter((f) => { const c = cmp(f.text); return !source.includes(c) && !inOrder(c); });
   const output = fields.map((f) => cmp(f.text)).join(" \u0000 ");
   const missing: string[] = [];
   let total = 0;

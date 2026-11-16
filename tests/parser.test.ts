@@ -20,6 +20,12 @@ const cases: Record<string, { name: string; clients: [string, string, string, st
     ["Capital One", "McLean, VA", "Senior Full Stack Engineer", "Feb 2021 – Present"],
     ["Walgreens", "Deerfield, IL", "Full Stack Developer", "May 2017 – Jan 2021"],
     ["Tata Consultancy Services", "Chennai, India", "Software Engineer", "Jun 2013 – Apr 2017"]] },
+  fsd_table: { name: "Jordan Lee", skills: 16, summary: 12, education: 0, clients: [
+    ["Bank of America", "San Francisco, CA", "Sr. Java Full Stack Developer", "May 2024 – Till Date"],
+    ["Albertsons", "Pleasanton, CA", "Sr. Java Full Stack Developer", "Mar 2023 – Apr 2024"],
+    ["Trigent", "India", "Java Developer", "Jan 2021 – Aug 2022"],
+    ["Roche", "India", "Java Developer", "Oct 2018 – Dec 2020"],
+    ["Toshiba Software", "India", "Java Developer", "May 2016 – Sep 2018"]] },
   sravan: { name: "SRAVAN KUMAR REDDY", skills: 4, summary: 4, education: 1, clients: [
     ["Bank of America", "Charlotte, NC", "Sr. Full Stack Developer", "Mar 2022 - Present"],
     ["Anthem Inc", "Atlanta, GA", "Full Stack Developer", "Jan 2019 - Feb 2022"],

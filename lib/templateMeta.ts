@@ -1,11 +1,13 @@
 // Template list, shared by the browser and the server.
 export type Template = {
   id: number; name: string; desc: string;
-  hdr: "left" | "center" | "inline";
-  h: "rule" | "caps" | "thin" | "plain" | "accent";
-  sk: "lines" | "bullets";
-  cl: "right" | "below" | "caps" | "oneline" | "rolefirst";
+  hdr: "left" | "center" | "inline" | "plain";
+  h: "rule" | "caps" | "thin" | "plain" | "accent" | "colon";
+  sk: "lines" | "bullets" | "table";
+  cl: "right" | "below" | "caps" | "oneline" | "rolefirst" | "labels";
   color?: string; airy?: boolean; compact?: boolean;
+  /** Layout copied from a real resume: exact sizes and margins. */
+  exact?: { margin: number; body: number; name: number };
 };
 
 export const TEMPLATES: Template[] = [
@@ -18,5 +20,6 @@ export const TEMPLATES: Template[] = [
   { id: 7, name: "Compact dense", desc: "Smaller type and tight spacing for long careers.", hdr: "left", h: "rule", sk: "lines", cl: "right", compact: true },
   { id: 8, name: "Single-line client header", desc: "Client, location, role and dates on one line.", hdr: "center", h: "rule", sk: "lines", cl: "oneline" },
   { id: 9, name: "Accent underline", desc: "Short underline under each heading, dark teal accent.", hdr: "left", h: "accent", color: "#0F5257", sk: "lines", cl: "right" },
-  { id: 10, name: "Role-first entries", desc: "Job title leads each entry, client below it.", hdr: "center", h: "thin", sk: "bullets", cl: "rolefirst" }
-  ];
+  { id: 10, name: "Role-first entries", desc: "Job title leads each entry, client below it.", hdr: "center", h: "thin", sk: "bullets", cl: "rolefirst" },
+  { id: 11, name: "Professional table", desc: "Bold headings with colons, skills in a table, CLIENT and ROLE labels.", hdr: "plain", h: "colon", sk: "table", cl: "labels", exact: { margin: 34, body: 10.5, name: 11 } }
+];

@@ -20,6 +20,11 @@ export type { Template };
   };
 
   function metrics(t) {
+    if (t.exact) {
+      const e = t.exact;
+      return { margin: e.margin, body: e.body, name: e.name, title: e.body + 0.5, contact: e.body, heading: e.body + 0.5,
+        secBefore: 12, afterHead: 6, clientGap: 12, line: 1.0, color: t.color || "#000000" };
+    }
     const compact = !!t.compact, airy = !!t.airy;
     return {
       margin: compact ? 40 : 50,          // pt
@@ -64,14 +69,24 @@ export type { Template };
       const parts = [{ text: (data.name || "").toUpperCase(), bold: true, fontSize: m.name, color: m.color }];
       if (data.title) parts.push({ text: "  |  " + data.title, fontSize: m.title });
       C.push({ text: parts, margin: [0, 0, 0, 2] });
+    } else if (t.hdr === "plain") {
+      C.push({ text: data.name || "", bold: true, fontSize: m.name, color: m.color });
+      if (data.title) C.push({ text: data.title, bold: true, fontSize: m.title, margin: [0, 1, 0, 0] });
     } else {
       C.push({ text: (data.name || "").toUpperCase(), bold: true, fontSize: m.name, color: m.color, alignment: center ? "center" : "left" });
       if (data.title) C.push({ text: data.title, fontSize: m.title, alignment: center ? "center" : "left", margin: [0, 1, 0, 0] });
     }
     const contact = nonEmpty(data.contact);
-    if (contact.length) C.push({ text: contact.join("  |  "), fontSize: m.contact, color: "#444444", alignment: center ? "center" : "left", margin: [0, 2, 0, 0] });
+    if (contact.length) C.push({ text: contact.join(t.hdr === "plain" ? " | " : "  |  "), fontSize: m.contact, color: t.hdr === "plain" ? "#1A1A1A" : "#444444", alignment: center ? "center" : "left", margin: [0, 2, 0, 0] });
 
     function heading(label) {
+      if (t.h === "colon") {
+        const out = [];
+        // A full-width line above the experience heading, as in the original layout.
+        if (label === HEADINGS.clients) out.push({ canvas: [{ type: "line", x1: 0, y1: 0, x2: W, y2: 0, lineWidth: 0.6, lineColor: "#000000" }], margin: [0, m.secBefore, 0, 0] });
+        out.push({ text: label + ":", bold: true, fontSize: m.heading, color: m.color, margin: [0, m.secBefore, 0, m.afterHead] });
+        return [keep({ stack: out })];
+      }
       const up = label.toUpperCase();
       const base = { text: up, bold: true, fontSize: m.heading, color: m.color, margin: [0, m.secBefore, 0, 1] };
       const out = [];
@@ -107,14 +122,22 @@ export type { Template };
       const rows = skills.map(function (s) {
         return s.cat ? { text: [{ text: s.cat + ": ", bold: true }, s.items], margin: [0, 0, 0, 1] } : { text: s.items, margin: [0, 0, 0, 1] };
       });
-      if (t.sk === "bullets") C.push({ ul: rows, margin: [0, 0, 0, 2] });
+      if (t.sk === "table") {
+        C.push({
+          table: { widths: ["30%", "*"], body: skills.map(function (s) { return [{ text: s.cat || "", bold: true }, { text: s.items }]; }) },
+          layout: { hLineWidth: function () { return 0.6; }, vLineWidth: function () { return 0.6; }, hLineColor: function () { return "#000000"; },
+            vLineColor: function () { return "#000000"; }, paddingLeft: function () { return 4; }, paddingRight: function () { return 4; },
+            paddingTop: function () { return 1; }, paddingBottom: function () { return 1; } },
+          margin: [0, 2, 0, 2]
+        });
+      } else if (t.sk === "bullets") C.push({ ul: rows, margin: [0, 0, 0, 2] });
       else C.push.apply(C, rows);
     }
 
     // Clients
     const clients = data.clients || [];
     if (clients.length) {
-      C.push.apply(C, heading(HEADINGS.clients));
+      const expHeading = heading(HEADINGS.clients)[0];
       clients.forEach(function (c, i) {
         const head = [];
         const lbl = "Client: ";
@@ -133,18 +156,24 @@ export type { Template };
         } else if (t.cl === "rolefirst") {
           head.push(rightRow({ text: c.role || "", bold: true }, { text: c.dates, bold: true }));
           head.push({ text: lbl + joinLoc(c) });
+        } else if (t.cl === "labels") {
+          head.push(rightRow({ text: "CLIENT: " + joinLoc(c), bold: true }, { text: c.dates, bold: true }));
+          if (c.role) head.push({ text: "ROLE: " + c.role, bold: true });
         }
+        const boldLabels = t.cl === "labels";
         const desc = nonEmpty(c.description), resp = nonEmpty(c.responsibilities);
         // Keep the client header with what follows it (description or the Responsibilities label).
         if (desc.length) head.push({ text: desc[0], margin: [0, 2, 0, 2] });
-        else if (resp.length) head.push({ text: "Responsibilities:", margin: [0, 2, 0, 1] });
-        C.push(keep({ stack: head, margin: [0, i ? m.clientGap : 0, 0, 1] }));
+        else if (resp.length) head.push({ text: "Responsibilities:", bold: boldLabels, margin: [0, boldLabels ? 0 : 2, 0, boldLabels ? 6 : 1] });
+        // The section heading travels with the first client so it never sits alone at a page end.
+        if (i === 0) C.push(keep({ stack: [expHeading, { stack: head, margin: [0, 0, 0, 1] }] }));
+        else C.push(keep({ stack: head, margin: [0, m.clientGap, 0, 1] }));
         desc.slice(1).forEach(function (d) { C.push({ text: d, margin: [0, 1, 0, 2] }); });
         if (resp.length) {
-          if (desc.length) C.push(keep({ text: "Responsibilities:", margin: [0, 1, 0, 1] }));
+          if (desc.length) C.push(keep({ text: "Responsibilities:", bold: boldLabels, margin: [0, 1, 0, boldLabels ? 6 : 1] }));
           C.push(bullets(resp));
         }
-        if (c.environment) C.push({ text: [{ text: "Environment: ", bold: true }, c.environment], margin: [0, 1, 0, 0] });
+        if (c.environment) C.push({ text: [{ text: "Environment: ", bold: true }, c.environment], margin: [0, boldLabels ? 6 : 1, 0, 0] });
       });
     }
 
@@ -193,15 +222,23 @@ export type { Template };
       const runs = [run(data.name || "", { bold: true, size: hp(m.name), color: color, allCaps: true })];
       if (data.title) runs.push(run("  |  " + data.title, { size: hp(m.title) }));
       P.push(para(runs, { spacing: { after: 40 } }));
+    } else if (t.hdr === "plain") {
+      P.push(para([run(data.name || "", { bold: true, size: hp(m.name), color: color })]));
+      if (data.title) P.push(para([run(data.title, { bold: true, size: hp(m.title) })]));
     } else {
       const al = center ? D.AlignmentType.CENTER : D.AlignmentType.LEFT;
       P.push(para([run(data.name || "", { bold: true, size: hp(m.name), color: color, allCaps: true })], { extra: { alignment: al } }));
       if (data.title) P.push(para([run(data.title, { size: hp(m.title) })], { extra: { alignment: al }, spacing: { before: 20 } }));
     }
     const contact = nonEmpty(data.contact);
-    if (contact.length) P.push(para([run(contact.join("  |  "), { size: hp(m.contact), color: "444444" })], { extra: { alignment: center ? D.AlignmentType.CENTER : D.AlignmentType.LEFT }, spacing: { before: 40 } }));
+    if (contact.length) P.push(para([run(contact.join(t.hdr === "plain" ? " | " : "  |  "), { size: hp(m.contact), color: t.hdr === "plain" ? "1A1A1A" : "444444" })], { extra: { alignment: center ? D.AlignmentType.CENTER : D.AlignmentType.LEFT }, spacing: { before: 40 } }));
 
     function heading(label) {
+      if (t.h === "colon") {
+        const ex = { keepNext: true, keepLines: true };
+        if (label === HEADINGS.clients) ex.border = { top: { style: D.BorderStyle.SINGLE, size: 6, color: "000000", space: 8 } };
+        return [para([run(label + ":", { bold: true, size: hp(m.heading), color: color })], { extra: ex, spacing: { before: tw(m.secBefore + (label === HEADINGS.clients ? 6 : 0)), after: tw(m.afterHead) } })];
+      }
       const ro = { bold: true, size: hp(m.heading), color: color, allCaps: true };
       const extra = { keepNext: true, keepLines: true };
       const spacing = { before: tw(m.secBefore), after: tw(m.afterHead) };
@@ -230,7 +267,21 @@ export type { Template };
     const skills = (data.skills || []).filter(function (s) { return (s.items || "").trim() || (s.cat || "").trim(); });
     if (skills.length) {
       P.push.apply(P, heading(HEADINGS.skills));
-      skills.forEach(function (s) {
+      if (t.sk === "table") {
+        const b = { style: D.BorderStyle.SINGLE, size: 4, color: "000000" };
+        const borders = { top: b, bottom: b, left: b, right: b, insideHorizontal: b, insideVertical: b };
+        const cw = Math.round(textW * 0.3);
+        const cellM = { top: 10, bottom: 10, left: 80, right: 80 };
+        P.push(new D.Table({
+          width: { size: textW, type: D.WidthType.DXA }, columnWidths: [cw, textW - cw], borders: borders,
+          rows: skills.map(function (s) {
+            return new D.TableRow({ children: [
+              new D.TableCell({ width: { size: cw, type: D.WidthType.DXA }, margins: cellM, children: [para([run(s.cat || "", { bold: true })])] }),
+              new D.TableCell({ width: { size: textW - cw, type: D.WidthType.DXA }, margins: cellM, children: [para([run(s.items)])] })
+            ] });
+          })
+        }));
+      } else skills.forEach(function (s) {
         const runs = s.cat ? [run(s.cat + ": ", { bold: true }), run(s.items)] : [run(s.items)];
         P.push(t.sk === "bullets" ? bulletRuns(runs) : para(runs, { spacing: { after: 20 } }));
       });
@@ -258,14 +309,18 @@ export type { Template };
         } else if (t.cl === "rolefirst") {
           P.push(first([run(c.role || "", { bold: true }), run("\t" + (c.dates || ""), { bold: true })], { tabStops: rightTab }));
           P.push(para([run("Client: " + joinLoc(c), {})], { extra: keep }));
+        } else if (t.cl === "labels") {
+          P.push(first([run("CLIENT: " + joinLoc(c), { bold: true }), run("\t" + (c.dates || ""), { bold: true })], { tabStops: rightTab }));
+          if (c.role) P.push(para([run("ROLE: " + c.role, { bold: true })], { extra: keep }));
         }
+        const boldLabels = t.cl === "labels";
         nonEmpty(c.description).forEach(function (d) { P.push(para([run(d)], { spacing: { before: 20, after: 40 } })); });
         const resp = nonEmpty(c.responsibilities);
         if (resp.length) {
-          P.push(para([run("Responsibilities:")], { extra: { keepNext: true }, spacing: { before: 20, after: 20 } }));
+          P.push(para([run("Responsibilities:", { bold: boldLabels })], { extra: { keepNext: true }, spacing: { before: boldLabels ? 0 : 20, after: boldLabels ? 120 : 20 } }));
           resp.forEach(function (r) { P.push(bullet(r)); });
         }
-        if (c.environment) P.push(para([run("Environment: ", { bold: true }), run(c.environment)], { spacing: { before: 20 } }));
+        if (c.environment) P.push(para([run("Environment: ", { bold: true }), run(c.environment)], { spacing: { before: boldLabels ? 120 : 20 } }));
       });
     }
 
