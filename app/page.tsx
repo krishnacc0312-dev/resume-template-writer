@@ -8,7 +8,7 @@ import HeroArt from "@/components/HeroArt";
 
 const STEPS = [
   ["Add your resume", "Upload a PDF or Word file, or paste the text."],
-  ["Choose a sample", "Pick from 11 clean, ATS-friendly templates."],
+  ["Choose a sample", "Pick from 10 samples: ATS-friendly, recruiter-friendly or boxed."],
   ["Check the result", "See a live preview and an accuracy check. Edit if needed."],
   ["Download", "Get it as PDF, Word, or both."]
 ];
@@ -31,7 +31,7 @@ export default function Home() {
           <div>
             <Reveal><span className="badge"><span className="dot" />Free · No sign-up · No AI</span></Reveal>
             <Reveal delay={80}><h1>Your resume, rebuilt in a <em>clean template</em>, word for word</h1></Reveal>
-            <Reveal delay={160}><p className="lead">Upload your current resume, pick one of 11 ATS-friendly samples, and download it as PDF or Word in a couple of minutes.</p></Reveal>
+            <Reveal delay={160}><p className="lead">Upload your current resume, pick one of 10 samples, choose the font, size and length, and download it as PDF or Word in a couple of minutes.</p></Reveal>
             <Reveal delay={240}>
               <div className="hero-cta">
                 <Link href="/convert" className="btn primary big">Convert my resume</Link>

@@ -20,7 +20,7 @@ export default function OgImage() {
           <div style={{ fontSize: 64, fontWeight: 800, color: "#14161a", lineHeight: 1.08, letterSpacing: -1 }}>Your resume, rebuilt in a clean template.</div>
           <div style={{ fontSize: 64, fontWeight: 800, color: "#1f4fd6", lineHeight: 1.08, letterSpacing: -1, marginTop: 6 }}>Word for word.</div>
           <div style={{ display: "flex", gap: 14, marginTop: 36, fontSize: 24, color: "#3d424b" }}>
-            <span>11 ATS-friendly samples</span><span>·</span><span>PDF + Word</span><span>·</span><span>Free, no sign-up</span>
+            <span>10 resume samples</span><span>·</span><span>PDF + Word</span><span>·</span><span>Free, no sign-up</span>
           </div>
         </div>
         <div style={{ display: "flex", flex: 1, justifyContent: "flex-end", alignItems: "center" }}>

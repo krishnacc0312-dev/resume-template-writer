@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { TEMPLATES, ACCENTS } from "@/lib/templateMeta";
+import { TEMPLATES, ACCENTS, FONTS, SIZES } from "@/lib/templateMeta";
 import type { ParseResult, ResumeData } from "@/lib/types";
 import { verify } from "@/lib/verify";
 import Editor, { addTo, targetsFor } from "@/components/Editor";
@@ -11,6 +11,7 @@ import Confetti from "@/components/Confetti";
 import { toPlainText } from "@/lib/plaintext";
 import SampleCard from "@/components/SampleCard";
 import SamplesGallery from "@/components/SamplesGallery";
+import { useSampleFilters } from "@/components/SampleFilters";
 import SamplePreview from "@/components/SamplePreview";
 import DownloadDialog from "@/components/DownloadDialog";
 import Flags from "@/components/Flags";
@@ -43,14 +44,14 @@ export default function Convert() {
   const [dlError, setDlError] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
   const [previewId, setPreviewId] = useState<number | null>(null);
-  const [layout, setLayout] = useState<LayoutOptions>({ pageSize: "letter", accent: null, fitPages: 0 });
+  const [layout, setLayout] = useState<LayoutOptions>({ pageSize: "letter", accent: null, fitPages: 0, font: null, size: null });
   const [meta, setMeta] = useState<RenderMeta | null>(null);
   const [comparing, setComparing] = useState(false);
   const [beforeAfter, setBeforeAfter] = useState(false);
   const past = useRef<ResumeData[]>([]), future = useRef<ResumeData[]>([]);
   const [, setHist] = useState(0);
   const onMeta = useCallback((m: RenderMeta) => setMeta(m), []);
-  const renderOpts = useMemo<LayoutOptions>(() => ({ pageSize: layout.pageSize, accent: layout.accent, fitPages: layout.fitPages || undefined }), [layout]);
+  const renderOpts = useMemo<LayoutOptions>(() => ({ pageSize: layout.pageSize, accent: layout.accent, fitPages: layout.fitPages || undefined, font: layout.font || null, size: layout.size || null }), [layout]);
 
   /** Change the resume, remembering the previous version for undo. */
   const update = useCallback((d: ResumeData) => {
@@ -77,6 +78,7 @@ export default function Convert() {
     return () => window.removeEventListener("keydown", key);
   }, [step, undo, redo]);
   const fileInput = useRef<HTMLInputElement>(null);
+  const filters = useSampleFilters();
 
   const report = useMemo(() => (data && parsed ? verify(data, parsed.lines, parsed.roles) : null), [data, parsed]);
   const flagged = useMemo(() => new Set(report ? report.changed.map((c) => c.text) : []), [report]);
@@ -209,8 +211,10 @@ export default function Convert() {
           <h2>Choose a sample</h2>
           <p className="sub">Your resume was read{parsed ? ` (${parsed.lines.length} lines)` : ""}. Pick the look you want. You can try others later.</p>
           <p className="muted" style={{ marginTop: -14, marginBottom: 16 }}>Hover over a sample to preview your resume in it or download it.</p>
+          {filters.bar}
+          {filters.empty}
           <div className="grid" role="radiogroup" aria-label="Samples">
-            {TEMPLATES.map((t) => (
+            {filters.list.map((t) => (
               <SampleCard key={t.id} t={t} selected={t.id === tpl} onSelect={() => setTpl(t.id)}
                 onPreview={() => setPreviewId(t.id)} onDownload={() => { setTpl(t.id); setDlError(""); setChoosing(true); }} />
             ))}
@@ -248,7 +252,21 @@ export default function Convert() {
               <label className="lb-label" htmlFor="fit">Fit to</label>
               <select id="fit" value={layout.fitPages || 0} onChange={(e) => setLayout({ ...layout, fitPages: +e.target.value })}>
                 <option value={0}>Natural length</option>
-                {[2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} pages or fewer</option>)}
+                {[3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} pages or fewer</option>)}
+              </select>
+            </div>
+            <div className="lb-group">
+              <label className="lb-label" htmlFor="font">Font</label>
+              <select id="font" value={layout.font || ""} onChange={(e) => setLayout({ ...layout, font: (e.target.value || null) as LayoutOptions["font"] })}>
+                <option value="">Sample default ({FONTS.find((f) => f.key === template.font)?.name})</option>
+                {FONTS.map((f) => <option key={f.key} value={f.key}>{f.name}</option>)}
+              </select>
+            </div>
+            <div className="lb-group">
+              <label className="lb-label" htmlFor="tsize">Text size</label>
+              <select id="tsize" value={layout.size || 0} onChange={(e) => setLayout({ ...layout, size: +e.target.value || null })}>
+                <option value={0}>Sample default ({template.body} pt)</option>
+                {SIZES.map((n) => <option key={n} value={n}>{n} pt</option>)}
               </select>
             </div>
             <div className="lb-group">
@@ -272,7 +290,7 @@ export default function Convert() {
             <p className={"fit-note " + (meta.fits ? "ok" : "warn")} role="status">
               {meta.fits
                 ? (meta.scale < 1 ? `Fitted to ${meta.pages} page${meta.pages > 1 ? "s" : ""}: text is ${Math.round(meta.scale * 100)}% of its normal size.` : `Already ${meta.pages} page${meta.pages > 1 ? "s" : ""} at normal size.`)
-                : `Can't fit into ${layout.fitPages} pages at a readable size. The smallest readable size gives ${meta.pages} pages; try a more compact sample such as Compact dense.`}
+                : `Can't fit into ${layout.fitPages} pages at a readable size. The smallest readable size gives ${meta.pages} pages; try a smaller text size or the Compact pro sample.`}
             </p>
           )}
 

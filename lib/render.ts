@@ -10,13 +10,11 @@ function getPrinter() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const PdfPrinter = require("pdfmake");
   const dir = path.join(process.cwd(), "fonts");
+  const f = (n: string) => path.join(dir, n + ".ttf");
   printer = new PdfPrinter({
-    Carlito: {
-      normal: path.join(dir, "Carlito-Regular.ttf"),
-      bold: path.join(dir, "Carlito-Bold.ttf"),
-      italics: path.join(dir, "Carlito-Italic.ttf"),
-      bolditalics: path.join(dir, "Carlito-BoldItalic.ttf")
-    }
+    Carlito: { normal: f("Carlito-Regular"), bold: f("Carlito-Bold"), italics: f("Carlito-Italic"), bolditalics: f("Carlito-BoldItalic") },
+    Caladea: { normal: f("Caladea-Regular"), bold: f("Caladea-Bold"), italics: f("Caladea-Regular"), bolditalics: f("Caladea-Bold") },
+    LiberationSerif: { normal: f("LiberationSerif-Regular"), bold: f("LiberationSerif-Bold"), italics: f("LiberationSerif-Regular"), bolditalics: f("LiberationSerif-Bold") }
   });
   return printer;
 }
@@ -63,7 +61,9 @@ export function sanitizeOptions(o: unknown): RenderOptions & { fitPages?: number
   const r = (o && typeof o === "object" ? o : {}) as Record<string, unknown>;
   const accent = typeof r.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(r.accent) ? r.accent : null;
   const fit = Number(r.fitPages);
-  return { pageSize: r.pageSize === "a4" ? "a4" : "letter", accent, fitPages: fit >= 1 && fit <= 10 ? Math.round(fit) : undefined };
+  const font = r.font === "calibri" || r.font === "cambria" || r.font === "times" ? r.font : null;
+  const size = [10, 10.5, 11, 12].includes(Number(r.size)) ? Number(r.size) : null;
+  return { pageSize: r.pageSize === "a4" ? "a4" : "letter", accent, font, size, fitPages: fit >= 1 && fit <= 10 ? Math.round(fit) : undefined };
 }
 
 /** Accept only the expected shape and string fields, with size limits. */

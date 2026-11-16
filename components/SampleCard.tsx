@@ -1,5 +1,5 @@
 "use client";
-import type { Template } from "@/lib/templateMeta";
+import { FONTS, TYPES, STYLES, type Template } from "@/lib/templateMeta";
 
 /** A sample thumbnail. Hovering (or focusing) shows Preview and Download buttons. */
 export default function SampleCard({ t, selected, onSelect, onPreview, onDownload }: {
@@ -27,6 +27,11 @@ export default function SampleCard({ t, selected, onSelect, onPreview, onDownloa
         </div>
       </div>
       <span className="tname">{t.name}</span>
+      <span className="ttags">
+        <span className={"tag t-" + t.type}>{TYPES[t.type]}</span>
+        <span className="tag">{STYLES[t.style]}</span>
+        <span className="tag">{FONTS.find((f) => f.key === t.font)?.name}</span>
+      </span>
       <span className="tdesc">{t.desc}</span>
     </div>
   );
