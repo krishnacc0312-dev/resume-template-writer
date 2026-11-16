@@ -1,0 +1,33 @@
+VENKAT RAO
+Lead Full Stack Developer
+Edison, NJ | 908-555-0177 | venkat.rao@example.com | linkedin.com/in/venkatrao
+
+Professional Profile
+• 12 years of experience in full stack development with Java, Spring Boot, React and Node.js.
+• Experience in leading offshore and onsite teams of up to 8 developers.
+
+Technical Skills
+Programming Languages:   Java, JavaScript, TypeScript, Python
+Web Technologies:   React, Angular, Node.js, Express, HTML5, CSS3
+Databases:   Oracle, PostgreSQL, MongoDB
+
+Professional Experience
+
+Lead Software Engineer
+Walmart Global Tech, Bentonville, AR
+03/2019 - Till Date
+Responsibilities:
+• Led design of the store inventory microservices using Spring Boot and Kafka.
+• Built React dashboards for store associates.
+Environment: Java 11, Spring Boot, Kafka, React, Azure, Cosmos DB
+
+Senior Java Developer
+Verizon, Basking Ridge, NJ
+06/2015 - 02/2019
+Responsibilities:
+• Developed REST services for the billing platform.
+• Wrote Angular screens for order management.
+Environment: Java 8, Spring, Angular, Oracle, WebLogic
+
+Education
+Master of Computer Applications, Osmania University, 2012
