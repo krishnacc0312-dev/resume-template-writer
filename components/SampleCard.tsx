@@ -15,6 +15,9 @@ export default function SampleCard({ t, selected, onSelect, onPreview, onDownloa
         <img src={`/thumbs/${t.id}.png`} alt="" loading="lazy" />
         <span className="pick" aria-hidden="true">✓</span>
         <div className="thumb-actions">
+          <button type="button" className="ta-btn primary" onClick={(e) => { e.stopPropagation(); onSelect(); }}>
+            {selected ? "✓ Selected" : "Use this sample"}
+          </button>
           <button type="button" className="ta-btn" onClick={(e) => { e.stopPropagation(); onPreview(); }}>
             <span aria-hidden="true">⤢</span> Preview
           </button>

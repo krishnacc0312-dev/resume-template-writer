@@ -23,3 +23,10 @@ export const TEMPLATES: Template[] = [
   { id: 10, name: "Role-first entries", desc: "Job title leads each entry, client below it.", hdr: "center", h: "thin", sk: "bullets", cl: "rolefirst" },
   { id: 11, name: "Professional table", desc: "Bold headings with colons, skills in a table, CLIENT and ROLE labels.", hdr: "plain", h: "colon", sk: "table", cl: "labels", exact: { margin: 34, body: 10.5, name: 11 } }
 ];
+
+/** Heading colours offered on the results page. */
+export const ACCENTS: { name: string; value: string | null }[] = [
+  { name: "Sample default", value: null }, { name: "Black", value: "#111111" }, { name: "Navy", value: "#1F3A5F" },
+  { name: "Blue", value: "#1D4ED8" }, { name: "Teal", value: "#0F5257" }, { name: "Forest", value: "#1E5631" },
+  { name: "Maroon", value: "#7A1F2B" }, { name: "Purple", value: "#4C2A85" }, { name: "Slate", value: "#475569" }
+];

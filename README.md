@@ -47,6 +47,16 @@ npm test           # parser tests against the sample resumes in tests/fixtures
 
 It also runs on any host that supports Next.js (Netlify, Render, Railway, a VPS with `npm run build && npm start`).
 
+## Optional settings (Vercel → Settings → Environment Variables)
+
+| Variable | What it does |
+| --- | --- |
+| `FEEDBACK_WEBHOOK_URL` | Slack or Discord incoming-webhook URL. Turns on the Feedback button; messages are posted there. |
+| `FEEDBACK_GITHUB_TOKEN` + `FEEDBACK_GITHUB_REPO` | Alternative: a GitHub token with *Issues: read and write* and `owner/repo`; each message becomes an issue labelled `feedback`. |
+| `NEXT_PUBLIC_SITE_URL` | Your custom domain (e.g. `https://resumewriter.com`) for share links. Not needed on the default Vercel domain. |
+
+The Feedback button stays hidden until one feedback destination is set.
+
 ## Project layout
 
 | Path | What it is |

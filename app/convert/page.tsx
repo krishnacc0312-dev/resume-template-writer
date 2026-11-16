@@ -1,10 +1,14 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { TEMPLATES } from "@/lib/templateMeta";
+import { TEMPLATES, ACCENTS } from "@/lib/templateMeta";
 import type { ParseResult, ResumeData } from "@/lib/types";
 import { verify } from "@/lib/verify";
 import Editor, { addTo, targetsFor } from "@/components/Editor";
-import Preview, { renderFile } from "@/components/Preview";
+import Preview, { renderFile, type LayoutOptions, type RenderMeta } from "@/components/Preview";
+import CompareView from "@/components/CompareView";
+import BeforeAfter from "@/components/BeforeAfter";
+import Confetti from "@/components/Confetti";
+import { toPlainText } from "@/lib/plaintext";
 import SampleCard from "@/components/SampleCard";
 import SamplesGallery from "@/components/SamplesGallery";
 import SamplePreview from "@/components/SamplePreview";
@@ -39,6 +43,39 @@ export default function Convert() {
   const [dlError, setDlError] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
   const [previewId, setPreviewId] = useState<number | null>(null);
+  const [layout, setLayout] = useState<LayoutOptions>({ pageSize: "letter", accent: null, fitPages: 0 });
+  const [meta, setMeta] = useState<RenderMeta | null>(null);
+  const [comparing, setComparing] = useState(false);
+  const [beforeAfter, setBeforeAfter] = useState(false);
+  const past = useRef<ResumeData[]>([]), future = useRef<ResumeData[]>([]);
+  const [, setHist] = useState(0);
+  const onMeta = useCallback((m: RenderMeta) => setMeta(m), []);
+  const renderOpts = useMemo<LayoutOptions>(() => ({ pageSize: layout.pageSize, accent: layout.accent, fitPages: layout.fitPages || undefined }), [layout]);
+
+  /** Change the resume, remembering the previous version for undo. */
+  const update = useCallback((d: ResumeData) => {
+    setData((cur) => { if (cur) { past.current.push(cur); if (past.current.length > 100) past.current.shift(); } return d; });
+    future.current = []; setHist((h) => h + 1);
+  }, []);
+  const undo = useCallback(() => {
+    const prev = past.current.pop(); if (!prev) return;
+    setData((cur) => { if (cur) future.current.push(cur); return prev; }); setHist((h) => h + 1);
+  }, []);
+  const redo = useCallback(() => {
+    const nxt = future.current.pop(); if (!nxt) return;
+    setData((cur) => { if (cur) past.current.push(cur); return nxt; }); setHist((h) => h + 1);
+  }, []);
+  useEffect(() => {
+    if (step !== "result") return;
+    const key = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (el && /input|textarea|select/i.test(el.tagName)) return; // let fields use their own undo
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); }
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [step, undo, redo]);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const report = useMemo(() => (data && parsed ? verify(data, parsed.lines, parsed.roles) : null), [data, parsed]);
@@ -66,7 +103,7 @@ export default function Convert() {
       const res = await fetch("/api/parse", { method: "POST", body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "This file couldn't be read.");
-      setParsed(json); setData(json.data); setEditing(false); setPages(0);
+      setParsed(json); setData(json.data); setEditing(false); setPages(0); past.current = []; future.current = [];
       setStep("template");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
@@ -81,18 +118,23 @@ export default function Convert() {
   async function download(format: Format) {
     if (!data) return;
     setDlBusy(format); setDlError("");
+    const save = (blob: Blob, name: string) => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+    };
     try {
-      const formats: ("pdf" | "docx")[] = format === "both" ? ["docx", "pdf"] : [format];
       const names: string[] = [];
-      for (const f of formats) {
-        const blob = await renderFile(data, tpl, f);
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = fileName(f);
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 8000);
-        names.push(fileName(f));
-        if (formats.length > 1) await new Promise((r) => setTimeout(r, 400));
+      if (format === "txt") {
+        const name = fileName("pdf").replace(/\.pdf$/, ".txt");
+        save(new Blob([toPlainText(data)], { type: "text/plain;charset=utf-8" }), name); names.push(name);
+      } else {
+        const formats: ("pdf" | "docx")[] = format === "both" ? ["docx", "pdf"] : [format];
+        for (const f of formats) {
+          save(await renderFile(data, tpl, f, renderOpts), fileName(f)); names.push(fileName(f));
+          if (formats.length > 1) await new Promise((r) => setTimeout(r, 400));
+        }
       }
       setSaved(names); setChoosing(false); setStep("done");
     } catch { setDlError("The file couldn't be created. Try again."); }
@@ -194,6 +236,46 @@ export default function Convert() {
             </div>
           </div>
 
+          <div className="layout-bar">
+            <div className="lb-group">
+              <span className="lb-label">Page size</span>
+              <div className="seg" role="group" aria-label="Page size" style={{ marginBottom: 0 }}>
+                <button type="button" aria-pressed={layout.pageSize !== "a4"} onClick={() => setLayout({ ...layout, pageSize: "letter" })}>US Letter</button>
+                <button type="button" aria-pressed={layout.pageSize === "a4"} onClick={() => setLayout({ ...layout, pageSize: "a4" })}>A4</button>
+              </div>
+            </div>
+            <div className="lb-group">
+              <label className="lb-label" htmlFor="fit">Fit to</label>
+              <select id="fit" value={layout.fitPages || 0} onChange={(e) => setLayout({ ...layout, fitPages: +e.target.value })}>
+                <option value={0}>Natural length</option>
+                {[2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} pages or fewer</option>)}
+              </select>
+            </div>
+            <div className="lb-group">
+              <span className="lb-label">Colour</span>
+              <div className="swatches" role="radiogroup" aria-label="Heading colour">
+                {ACCENTS.map((a) => (
+                  <button key={a.name} type="button" role="radio" aria-checked={(layout.accent || null) === a.value} title={a.name} aria-label={a.name}
+                    className={"sw" + (a.value ? "" : " sw-default")} style={a.value ? { background: a.value } : undefined}
+                    onClick={() => setLayout({ ...layout, accent: a.value })} />
+                ))}
+              </div>
+            </div>
+            <div className="lb-group lb-tools">
+              <button type="button" className="btn icon" onClick={undo} disabled={!past.current.length} title="Undo (Ctrl+Z)">↶ Undo</button>
+              <button type="button" className="btn icon" onClick={redo} disabled={!future.current.length} title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+              <button type="button" className="btn icon" onClick={() => setComparing(true)}>⇆ Compare</button>
+              <button type="button" className="btn icon" onClick={() => setBeforeAfter(true)}>◧ Before / after</button>
+            </div>
+          </div>
+          {!!layout.fitPages && meta && (
+            <p className={"fit-note " + (meta.fits ? "ok" : "warn")} role="status">
+              {meta.fits
+                ? (meta.scale < 1 ? `Fitted to ${meta.pages} page${meta.pages > 1 ? "s" : ""}: text is ${Math.round(meta.scale * 100)}% of its normal size.` : `Already ${meta.pages} page${meta.pages > 1 ? "s" : ""} at normal size.`)
+                : `Can't fit into ${layout.fitPages} pages at a readable size. The smallest readable size gives ${meta.pages} pages; try a more compact sample such as 7. Compact dense.`}
+            </p>
+          )}
+
           <div className={"check " + (report.ok ? "ok" : "warn")}>
             <strong>{report.ok ? "✓ Accuracy check passed" : "Accuracy check: please review"}</strong>
             <p>{report.placed} of {report.total} lines from your resume are in the new version, copied word for word.</p>
@@ -206,7 +288,7 @@ export default function Convert() {
             {!report.ok && !editing && <p>Use <b>Edit</b> to fix anything before downloading.</p>}
           </div>
 
-          <Flags data={data} />
+          <Flags data={data} pages={pages} />
 
           {report.missing.length > 0 && (
             <div className="panel">
@@ -215,7 +297,7 @@ export default function Convert() {
               {report.missing.map((l, i) => (
                 <div className="loose" key={i + l}>
                   <span>{l}</span>
-                  <select aria-label="Add to section" value="" onChange={(e) => e.target.value && setData(addTo(data, e.target.value, l))}>
+                  <select aria-label="Add to section" value="" onChange={(e) => e.target.value && update(addTo(data, e.target.value, l))}>
                     <option value="">Add to…</option>
                     {targets.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
                   </select>
@@ -234,7 +316,7 @@ export default function Convert() {
                   {o.lines.map((l, i) => (
                     <div className="loose" key={i + l}>
                       <span>{l}</span>
-                      <select aria-label="Add to section" value="" onChange={(e) => e.target.value && setData(addTo(data, e.target.value, l))}>
+                      <select aria-label="Add to section" value="" onChange={(e) => e.target.value && update(addTo(data, e.target.value, l))}>
                         <option value="">Add to…</option>
                         {targets.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
                       </select>
@@ -246,9 +328,9 @@ export default function Convert() {
           )}
 
           <div className={editing ? "work" : "solo"}>
-            {editing && <div className="swap"><Editor data={data} onChange={setData} flagged={flagged} /></div>}
+            {editing && <div className="swap"><Editor data={data} onChange={update} flagged={flagged} /></div>}
             <div className={editing ? "sticky" : ""}>
-              <Preview data={data} templateId={tpl} onPages={onPages} />
+              <Preview data={data} templateId={tpl} options={renderOpts} onPages={onPages} onMeta={onMeta} allowBook />
               <p className="muted center" style={{ marginTop: 10 }}>Word files use Calibri. The preview and PDF use Carlito, which has the same letter widths as Calibri.</p>
             </div>
           </div>
@@ -261,6 +343,7 @@ export default function Convert() {
 
       {step === "done" && (
         <section className="panel-card done-wrap" key="done">
+          <Confetti />
           <div className="tick" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M11 21 l6 6 l12 -14" /></svg></div>
           <h2>Your resume is ready</h2>
           <p className="sub">It&apos;s in your Downloads folder.</p>
@@ -278,6 +361,14 @@ export default function Convert() {
           useLabel="Use this sample →"
           onUse={() => { setTpl(previewId); setPreviewId(null); go("result"); }}
           onDownload={() => { setTpl(previewId); setPreviewId(null); setDlError(""); setChoosing(true); }} />
+      )}
+
+      {comparing && data && (
+        <CompareView data={data} left={tpl} options={renderOpts} onClose={() => setComparing(false)} onUse={(id) => { setTpl(id); setComparing(false); }} />
+      )}
+      {beforeAfter && data && (
+        <BeforeAfter data={data} templateId={tpl} options={renderOpts} file={mode === "upload" ? file : null}
+          html={parsed?.originalHtml} text={mode === "paste" ? paste : undefined} onClose={() => setBeforeAfter(false)} />
       )}
 
       {choosing && (

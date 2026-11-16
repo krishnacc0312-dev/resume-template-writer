@@ -5,6 +5,7 @@ import { SAMPLE } from "@/lib/sample";
 import SamplePreview from "./SamplePreview";
 import DownloadDialog, { type Format } from "./DownloadDialog";
 import { renderFile } from "./Preview";
+import { toPlainText } from "@/lib/plaintext";
 
 /**
  * Preview and Download for samples filled with the example resume.
@@ -23,7 +24,7 @@ export function useSampleTools(onUse: (id: number) => void) {
     setBusy(format); setError("");
     try {
       for (const f of format === "both" ? (["docx", "pdf"] as const) : ([format] as const)) {
-        const blob = await renderFile(SAMPLE, t.id, f);
+        const blob = f === "txt" ? new Blob([toPlainText(SAMPLE)], { type: "text/plain;charset=utf-8" }) : await renderFile(SAMPLE, t.id, f);
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = `Sample_${t.id}_${t.name.replace(/[^\w]+/g, "_")}.${f}`;

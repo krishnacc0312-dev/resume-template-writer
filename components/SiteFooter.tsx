@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AppInstall from "./AppInstall";
 
 export default function SiteFooter() {
   return (
@@ -8,6 +9,7 @@ export default function SiteFooter() {
           <div>
             <Link href="/" className="logo"><span className="logo-mark" aria-hidden="true"><i /></span>Resume Template Writer</Link>
             <p style={{ marginTop: 10, maxWidth: 360 }}>Rebuild your resume in a clean, ATS-friendly template, word for word. Free, no sign-up, no AI.</p>
+            <div style={{ marginTop: 12 }}><AppInstall /></div>
           </div>
           <div>
             <h4>Product</h4>

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 
-export type Format = "pdf" | "docx" | "both";
+export type Format = "pdf" | "docx" | "both" | "txt";
 
 export default function DownloadDialog({ title = "Download your resume", note, busy, error, onPick, onClose }: {
   title?: string; note?: string; busy: Format | null; error: string; onPick: (f: Format) => void; onClose: () => void;
@@ -26,6 +26,7 @@ export default function DownloadDialog({ title = "Download your resume", note, b
           {opt("pdf", "PDF", "pdf", "PDF", "Best for emailing and job portals", true)}
           {opt("docx", "DOC", "doc", "Word (.docx)", "Editable; what most vendors ask for")}
           {opt("both", "ALL", "both", "Both", "PDF and Word together")}
+          {opt("txt", "TXT", "txt", "Plain text (.txt)", "For job portals that ask you to paste text")}
         </div>
         {error && <p className="err" style={{ marginTop: 10 }}>{error}</p>}
         <div className="row end"><button type="button" className="btn" disabled={!!busy} onClick={onClose}>Cancel</button></div>
