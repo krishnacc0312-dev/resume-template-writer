@@ -26,10 +26,13 @@ export async function POST(req: Request) {
   const message = String(body.message || "").trim().slice(0, 4000);
   const email = String(body.email || "").trim().slice(0, 200);
   const page = String(body.page || "").slice(0, 200);
+  const name = String(body.name || "").trim().slice(0, 120);
   if (message.length < 5) return Response.json({ error: "Write a little more so we can understand the problem." }, { status: 400 });
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return Response.json({ error: "That email address doesn't look right." }, { status: 400 });
 
-  const text = `Feedback: ${kind}\n${message}\n\nPage: ${page || "-"}\nReply to: ${email || "not given"}`;
+  if (kind === "Contact" && !email) return Response.json({ error: "Add your email so we can reply." }, { status: 400 });
+  const label = kind === "Contact" ? "Contact message" : `Feedback: ${kind}`;
+  const text = `${label}${name ? ` from ${name}` : ""}\n${message}\n\nPage: ${page || "-"}\nReply to: ${email || "not given"}`;
   const jobs: Promise<Response>[] = [];
   if (process.env.FEEDBACK_WEBHOOK_URL) {
     jobs.push(fetch(process.env.FEEDBACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, content: text.slice(0, 1990) }) }));
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
     jobs.push(fetch(`https://api.github.com/repos/${process.env.FEEDBACK_GITHUB_REPO}/issues`, {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.FEEDBACK_GITHUB_TOKEN}`, Accept: "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "resume-template-writer" },
-      body: JSON.stringify({ title: `Feedback: ${kind}: ${message.slice(0, 60)}`, body: `${message}\n\n---\nPage: ${page || "-"}\nReply to: ${email || "not given"}`, labels: ["feedback"] })
+      body: JSON.stringify({ title: `${label}: ${message.slice(0, 60)}`, body: `${message}\n\n---\nFrom: ${name || "-"}\nPage: ${page || "-"}\nReply to: ${email || "not given"}`, labels: [kind === "Contact" ? "contact" : "feedback"] })
     }));
   }
   const results = await Promise.allSettled(jobs);

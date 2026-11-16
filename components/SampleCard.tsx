@@ -7,7 +7,7 @@ export default function SampleCard({ t, selected, onSelect, onPreview, onDownloa
 }) {
   return (
     <div className="tpl" role="radio" aria-checked={!!selected} aria-pressed={!!selected} tabIndex={0}
-      aria-label={`${t.id}. ${t.name}`}
+      aria-label={t.name}
       onClick={onSelect}
       onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelect(); } }}>
       <div className="thumb">
@@ -26,7 +26,7 @@ export default function SampleCard({ t, selected, onSelect, onPreview, onDownloa
           </button>
         </div>
       </div>
-      <span className="tname">{t.id}. {t.name}</span>
+      <span className="tname">{t.name}</span>
       <span className="tdesc">{t.desc}</span>
     </div>
   );

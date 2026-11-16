@@ -21,7 +21,7 @@ export default function CompareView({ data, left, options, onUse, onClose }: {
     <div className="cmp-side">
       <div className="cmp-head">
         <select className="tplsel" aria-label={`${label} sample`} value={id} onChange={(e) => set(+e.target.value)}>
-          {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.id}. {t.name}</option>)}
+          {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
         <button type="button" className="btn primary small" onClick={() => onUse(id)}>Use this</button>
       </div>

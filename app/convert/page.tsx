@@ -198,7 +198,7 @@ export default function Convert() {
 
           <div className="mini-gallery">
             <h3>Browse the samples</h3>
-            <p className="muted">Hover over a sample to preview or download it. Click one to choose it now ({template.id}. {template.name} is selected). You can change it after uploading.</p>
+            <p className="muted">Hover over a sample to preview or download it. Click one to choose it now ({template.name} is selected). You can change it after uploading.</p>
             <SamplesGallery selected={tpl} onSelect={setTpl} />
           </div>
         </section>
@@ -227,7 +227,7 @@ export default function Convert() {
           <div className="result-head">
             <div>
               <h2>Your resume</h2>
-              <p className="muted" style={{ fontSize: 15 }}>Sample <b>{template.id}. {template.name}</b>{pages > 0 && <> · {pages} page{pages > 1 ? "s" : ""}</>}</p>
+              <p className="muted" style={{ fontSize: 15 }}>Sample: <b>{template.name}</b>{pages > 0 && <> · {pages} page{pages > 1 ? "s" : ""}</>}</p>
             </div>
             <div className="row" style={{ marginTop: 0 }}>
               <button type="button" className="btn" onClick={() => go("template")}>Change sample</button>
@@ -272,7 +272,7 @@ export default function Convert() {
             <p className={"fit-note " + (meta.fits ? "ok" : "warn")} role="status">
               {meta.fits
                 ? (meta.scale < 1 ? `Fitted to ${meta.pages} page${meta.pages > 1 ? "s" : ""}: text is ${Math.round(meta.scale * 100)}% of its normal size.` : `Already ${meta.pages} page${meta.pages > 1 ? "s" : ""} at normal size.`)
-                : `Can't fit into ${layout.fitPages} pages at a readable size. The smallest readable size gives ${meta.pages} pages; try a more compact sample such as 7. Compact dense.`}
+                : `Can't fit into ${layout.fitPages} pages at a readable size. The smallest readable size gives ${meta.pages} pages; try a more compact sample such as Compact dense.`}
             </p>
           )}
 
@@ -373,7 +373,7 @@ export default function Convert() {
 
       {choosing && (
         <DownloadDialog busy={dlBusy} error={dlError} onPick={download} onClose={() => setChoosing(false)}
-          note={`Sample ${template.id}. ${template.name}. Choose a format.`} />
+          note={`Sample: ${template.name}. Choose a format.`} />
       )}
     </main>
   );

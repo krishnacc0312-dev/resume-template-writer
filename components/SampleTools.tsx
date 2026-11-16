@@ -27,7 +27,7 @@ export function useSampleTools(onUse: (id: number) => void) {
         const blob = f === "txt" ? new Blob([toPlainText(SAMPLE)], { type: "text/plain;charset=utf-8" }) : await renderFile(SAMPLE, t.id, f);
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `Sample_${t.id}_${t.name.replace(/[^\w]+/g, "_")}.${f}`;
+        a.download = `Sample_${t.name.replace(/[^\w]+/g, "_")}.${f}`;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 8000);
         if (format === "both") await new Promise((r) => setTimeout(r, 400));
@@ -46,7 +46,7 @@ export function useSampleTools(onUse: (id: number) => void) {
       )}
       {dlId !== null && (
         <DownloadDialog title="Download this sample" busy={busy} error={error} onPick={download} onClose={() => setDlId(null)}
-          note={`Sample ${dlId}, filled with the example resume. Choose a format.`} />
+          note={`${TEMPLATES.find((x) => x.id === dlId)?.name} sample, filled with the example resume. Choose a format.`} />
       )}
     </>
   );

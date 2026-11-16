@@ -29,7 +29,7 @@ export default function SamplePreview({ id, data, isOwn, onChange, onClose, onUs
       <div className="viewer" onClick={(e) => e.stopPropagation()}>
         <div className="viewer-head">
           <div>
-            <h3 id="pv-title">{t.id}. {t.name}</h3>
+            <h3 id="pv-title">{t.name}</h3>
             <p className="muted">{isOwn ? "Your resume in this sample" : "Example resume in this sample"}{pages > 0 && ` · ${pages} page${pages > 1 ? "s" : ""}`}</p>
           </div>
           <div className="row" style={{ marginTop: 0 }}>
