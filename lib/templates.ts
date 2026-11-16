@@ -3,9 +3,14 @@
 // Resume templates: one data model -> PDF definition (pdfmake) and Word document (docx).
 import * as docxLib from "docx";
 import type { ResumeData } from "./types";
-import { TEMPLATES, type Template } from "./templateMeta";
+import { TEMPLATES, ACCENTS, type Template } from "./templateMeta";
+export { ACCENTS };
 import { SAMPLE } from "./sample";
 export { SAMPLE };
+
+/** Options chosen by the user on the results page. */
+export type RenderOptions = { pageSize?: "letter" | "a4"; accent?: string | null; scale?: number };
+
 export { TEMPLATES };
 export type { Template };
 
@@ -21,7 +26,24 @@ export type { Template };
     education: "Education"
   };
 
-  function metrics(t) {
+  function metrics(t, o) {
+    const base = metricsBase(t);
+    o = o || {};
+    const sc = o.scale || 1;
+    const r = Object.assign({}, base);
+    if (sc !== 1) {
+      ["body", "name", "title", "contact", "heading"].forEach(function (k) { r[k] = Math.round(base[k] * sc * 10) / 10; });
+      ["secBefore", "afterHead", "clientGap"].forEach(function (k) { r[k] = base[k] * sc; });
+      r.margin = sc < 1 ? base.margin * Math.max(0.78, sc) : base.margin;
+    }
+    if (o.accent) r.color = o.accent;
+    r.rule = o.accent || null;
+    r.pageW = o.pageSize === "a4" ? 595.28 : 612;
+    r.pageH = o.pageSize === "a4" ? 841.89 : 792;
+    r.a4 = o.pageSize === "a4";
+    return r;
+  }
+  function metricsBase(t) {
     if (t.exact) {
       const e = t.exact;
       return { margin: e.margin, body: e.body, name: e.name, title: e.body + 0.5, contact: e.body, heading: e.body + 0.5,
@@ -42,7 +64,6 @@ export type { Template };
       color: t.color || "#1A1A1A"
     };
   }
-  const PAGE_W = 612, PAGE_H = 792;
 
   function nonEmpty(a) { return (a || []).filter(function (x) { return x && String(x).trim(); }); }
   function joinLoc(c) { return c.location ? c.client + ", " + c.location : c.client; }
@@ -61,8 +82,8 @@ export type { Template };
     node.headlineLevel = 1;
     return node;
   }
-  export function pdfDef(data: ResumeData, t: Template): any {
-    const m = metrics(t), W = PAGE_W - 2 * m.margin;
+  export function pdfDef(data: ResumeData, t: Template, opts?: RenderOptions): any {
+    const m = metrics(t, opts), W = m.pageW - 2 * m.margin;
     const C = [];
     const center = t.hdr === "center";
 
@@ -85,7 +106,7 @@ export type { Template };
       if (t.h === "colon") {
         const out = [];
         // A full-width line above the experience heading, as in the original layout.
-        if (label === HEADINGS.clients) out.push({ canvas: [{ type: "line", x1: 0, y1: 0, x2: W, y2: 0, lineWidth: 0.6, lineColor: "#000000" }], margin: [0, m.secBefore, 0, 0] });
+        if (label === HEADINGS.clients) out.push({ canvas: [{ type: "line", x1: 0, y1: 0, x2: W, y2: 0, lineWidth: 0.6, lineColor: m.rule || "#000000" }], margin: [0, m.secBefore, 0, 0] });
         out.push({ text: label + ":", bold: true, fontSize: m.heading, color: m.color, margin: [0, m.secBefore, 0, m.afterHead] });
         return [keep({ stack: out })];
       }
@@ -94,11 +115,11 @@ export type { Template };
       const out = [];
       if (t.h === "caps") {
         base.alignment = "center"; base.characterSpacing = 1.2;
-        out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: W, y2: 1, lineWidth: 0.5, lineColor: "#555555" }], margin: [0, 0, 0, m.afterHead] });
+        out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: W, y2: 1, lineWidth: 0.5, lineColor: m.rule || "#555555" }], margin: [0, 0, 0, m.afterHead] });
       } else if (t.h === "rule") {
-        out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: W, y2: 1, lineWidth: 1.2, lineColor: "#222222" }], margin: [0, 0, 0, m.afterHead] });
+        out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: W, y2: 1, lineWidth: 1.2, lineColor: m.rule || "#222222" }], margin: [0, 0, 0, m.afterHead] });
       } else if (t.h === "thin") {
-        out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: W, y2: 1, lineWidth: 0.5, lineColor: "#999999" }], margin: [0, 0, 0, m.afterHead] });
+        out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: W, y2: 1, lineWidth: 0.5, lineColor: m.rule || "#999999" }], margin: [0, 0, 0, m.afterHead] });
       } else if (t.h === "accent") {
         out.push(base, { canvas: [{ type: "line", x1: 0, y1: 1, x2: 36, y2: 1, lineWidth: 2, lineColor: m.color }], margin: [0, 0, 0, m.afterHead] });
       } else {
@@ -187,7 +208,7 @@ export type { Template };
     }
 
     return {
-      pageSize: "LETTER",
+      pageSize: m.a4 ? "A4" : "LETTER",
       pageMargins: [m.margin, m.margin, m.margin, m.margin],
       info: { title: (data.name || "Resume") + " - Resume" },
       defaultStyle: { font: "Carlito", fontSize: m.body, lineHeight: m.line, color: "#1A1A1A" },
@@ -202,12 +223,13 @@ export type { Template };
   }
 
   /* ---------------- Word (docx) ---------------- */
-  export function docxDoc(data: ResumeData, t: Template): docxLib.Document {
+  export function docxDoc(data: ResumeData, t: Template, opts?: RenderOptions): docxLib.Document {
     const D = docxLib;
-    const m = metrics(t);
+    const m = metrics(t, opts);
     const tw = function (pt) { return Math.round(pt * 20); };
     const hp = function (pt) { return Math.round(pt * 2); };
-    const textW = tw(PAGE_W - 2 * m.margin);
+    const textW = tw(m.pageW - 2 * m.margin);
+    const rule = m.rule ? m.rule.replace("#", "") : null;
     const color = m.color.replace("#", "");
     const center = t.hdr === "center";
     const P = [];
@@ -238,15 +260,15 @@ export type { Template };
     function heading(label) {
       if (t.h === "colon") {
         const ex = { keepNext: true, keepLines: true };
-        if (label === HEADINGS.clients) ex.border = { top: { style: D.BorderStyle.SINGLE, size: 6, color: "000000", space: 8 } };
+        if (label === HEADINGS.clients) ex.border = { top: { style: D.BorderStyle.SINGLE, size: 6, color: rule || "000000", space: 8 } };
         return [para([run(label + ":", { bold: true, size: hp(m.heading), color: color })], { extra: ex, spacing: { before: tw(m.secBefore + (label === HEADINGS.clients ? 6 : 0)), after: tw(m.afterHead) } })];
       }
       const ro = { bold: true, size: hp(m.heading), color: color, allCaps: true };
       const extra = { keepNext: true, keepLines: true };
       const spacing = { before: tw(m.secBefore), after: tw(m.afterHead) };
-      if (t.h === "caps") { ro.characterSpacing = 24; extra.alignment = D.AlignmentType.CENTER; extra.border = { bottom: { style: D.BorderStyle.SINGLE, size: 4, color: "555555", space: 1 } }; }
-      else if (t.h === "rule") extra.border = { bottom: { style: D.BorderStyle.SINGLE, size: 10, color: "222222", space: 1 } };
-      else if (t.h === "thin") extra.border = { bottom: { style: D.BorderStyle.SINGLE, size: 4, color: "999999", space: 1 } };
+      if (t.h === "caps") { ro.characterSpacing = 24; extra.alignment = D.AlignmentType.CENTER; extra.border = { bottom: { style: D.BorderStyle.SINGLE, size: 4, color: rule || "555555", space: 1 } }; }
+      else if (t.h === "rule") extra.border = { bottom: { style: D.BorderStyle.SINGLE, size: 10, color: rule || "222222", space: 1 } };
+      else if (t.h === "thin") extra.border = { bottom: { style: D.BorderStyle.SINGLE, size: 4, color: rule || "999999", space: 1 } };
       if (t.h === "accent") {
         return [
           para([run(label, ro)], { extra: extra, spacing: { before: tw(m.secBefore), after: 0 } }),
@@ -344,7 +366,7 @@ export type { Template };
         }]
       },
       sections: [{
-        properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: tw(m.margin), bottom: tw(m.margin), left: tw(m.margin), right: tw(m.margin) } } },
+        properties: { page: { size: m.a4 ? { width: 11906, height: 16838 } : { width: 12240, height: 15840 }, margin: { top: tw(m.margin), bottom: tw(m.margin), left: tw(m.margin), right: tw(m.margin) } } },
         children: P
       }]
     });

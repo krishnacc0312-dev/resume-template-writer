@@ -2,10 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import ThemeSwitch from "./ThemeSwitch";
 
 const LINKS = [
   { href: "/#how", label: "How it works" },
-  { href: "/#samples", label: "Samples" },
+  { href: "/samples", label: "Samples" },
   { href: "/#features", label: "Features" },
   { href: "/#faq", label: "FAQ" }
 ];
@@ -32,6 +33,7 @@ export default function SiteHeader() {
         </button>
         <nav className={"nav-links" + (open ? " open" : "")} aria-label="Main">
           {LINKS.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>)}
+          <ThemeSwitch />
           <Link href="/convert" className="btn primary nav-cta">Convert my resume</Link>
         </nav>
       </div>

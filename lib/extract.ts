@@ -24,6 +24,13 @@ function segmentsOf(text: string): string[] | undefined {
 }
 
 /* ---------------- Word (.docx) ---------------- */
+/** Light HTML view of a Word file for the before/after comparison: no images or links. */
+export async function docxHtml(buf: Buffer): Promise<string> {
+  const mammoth = (await import("mammoth")).default;
+  const { value } = await mammoth.convertToHtml({ buffer: buf }, { ignoreEmptyParagraphs: false });
+  return value.replace(/<img[^>]*>/gi, "").replace(/\s(?:href|src|on\w+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "").replace(/<\/?(?:script|style|iframe|object)[^>]*>/gi, "").slice(0, 400000);
+}
+
 export async function extractDocx(buf: Buffer): Promise<RichLine[]> {
   const mammoth = (await import("mammoth")).default;
   const { value: html } = await mammoth.convertToHtml(

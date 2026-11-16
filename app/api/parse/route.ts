@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractAny, extractText } from "@/lib/extract";
+import { docxHtml, extractAny, extractText } from "@/lib/extract";
 import { parseResume } from "@/lib/parser";
 
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       if (file.size > MAX_BYTES) return NextResponse.json({ error: "That file is over 4 MB. Upload a smaller file." }, { status: 413 });
       const buf = Buffer.from(await file.arrayBuffer());
       const { lines, source } = await extractAny(file.name, buf);
-      result = parseResume(lines, source);
+      result = { ...parseResume(lines, source), originalHtml: source === "docx" ? await docxHtml(buf).catch(() => "") : undefined };
     } else if (typeof text === "string" && text.trim()) {
       result = parseResume(extractText(text.slice(0, 200000)), "text");
     } else {

@@ -47,6 +47,7 @@ export type ParseResult = {
   other: OtherSection[]; // sections that are not part of the templates
   unplaced: string[];    // lines the parser could not place
   source: "pdf" | "docx" | "text";
+  originalHtml?: string; // Word files only, for the before/after view
 };
 
 export const emptyClient = (): ClientEntry => ({

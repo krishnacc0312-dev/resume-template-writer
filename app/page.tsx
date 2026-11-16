@@ -4,6 +4,7 @@ import Reveal from "@/components/Reveal";
 import Splash from "@/components/Splash";
 import Faq from "@/components/Faq";
 import SamplesGallery from "@/components/SamplesGallery";
+import HeroArt from "@/components/HeroArt";
 
 const STEPS = [
   ["Add your resume", "Upload a PDF or Word file, or paste the text."],
@@ -34,21 +35,14 @@ export default function Home() {
             <Reveal delay={240}>
               <div className="hero-cta">
                 <Link href="/convert" className="btn primary big">Convert my resume</Link>
-                <Link href="/#samples" className="btn big">See samples</Link>
+                <Link href="/samples" className="btn big">See samples</Link>
               </div>
             </Reveal>
             <Reveal delay={320}>
               <ul className="ticks"><li>Text stays exactly the same</li><li>PDF and Word</li><li>Files never stored</li></ul>
             </Reveal>
           </div>
-          <div className="hero-art" aria-hidden="true">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <div className="paper p1"><img src="/thumbs/3.png" alt="" /></div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <div className="paper p2"><img src="/thumbs/11.png" alt="" /></div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <div className="paper p3"><img src="/thumbs/9.png" alt="" /></div>
-          </div>
+          <HeroArt />
         </div>
       </section>
 
