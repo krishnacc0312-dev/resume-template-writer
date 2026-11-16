@@ -469,3 +469,5 @@ details summary { cursor: pointer; margin-top: 6px; }
 .ta-btn.primary { background: var(--accent); color: #fff; }
 .ta-btn.primary:hover { background: var(--accent-ink); }
 @media (hover: none) { .thumb-actions { flex-wrap: wrap; } .ta-btn.primary { flex-basis: 100%; } }
+.contact-form { margin-top: 22px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+@media (max-width: 560px) { .contact-form .two { grid-template-columns: 1fr; } }

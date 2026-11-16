@@ -18,7 +18,7 @@ export default function HeroArt() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`/thumbs/${id}.png`} alt={`${t.name} sample`} />
             <div className="paper-actions">
-              <span className="paper-name">{id}. {t.name}</span>
+              <span className="paper-name">{t.name}</span>
               <button type="button" className="ta-btn" onClick={() => tools.preview(id)}>⤢ Preview</button>
               <button type="button" className="ta-btn ghost" onClick={() => tools.download(id)}>⇩ Download</button>
             </div>

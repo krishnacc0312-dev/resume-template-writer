@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import LogoMark from "./Logo";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import ThemeSwitch from "./ThemeSwitch";
@@ -25,7 +26,7 @@ export default function SiteHeader() {
     <header className={"site-header" + (scrolled ? " scrolled" : "")}>
       <div className="container nav">
         <Link href="/" className="logo" aria-label="Resume Template Writer home">
-          <span className="logo-mark" aria-hidden="true"><i /></span>
+          <LogoMark />
           Resume Template Writer
         </Link>
         <button type="button" className="menu-btn" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(!open)}>
