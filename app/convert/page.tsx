@@ -5,9 +5,12 @@ import type { ParseResult, ResumeData } from "@/lib/types";
 import { verify } from "@/lib/verify";
 import Editor, { addTo, targetsFor } from "@/components/Editor";
 import Preview, { renderFile } from "@/components/Preview";
+import SampleCard from "@/components/SampleCard";
+import SamplePreview from "@/components/SamplePreview";
+import DownloadDialog from "@/components/DownloadDialog";
 
 type Step = "input" | "template" | "result" | "done";
-type Format = "pdf" | "docx" | "both";
+import type { Format } from "@/components/DownloadDialog";
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "input", label: "Your resume" },
@@ -33,6 +36,7 @@ export default function Convert() {
   const [dlBusy, setDlBusy] = useState<Format | null>(null);
   const [dlError, setDlError] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
+  const [previewId, setPreviewId] = useState<number | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const report = useMemo(() => (data && parsed ? verify(data, parsed.lines, parsed.roles) : null), [data, parsed]);
@@ -46,12 +50,6 @@ export default function Convert() {
     if (TEMPLATES.some((t) => t.id === n)) setTpl(n);
   }, []);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
-  useEffect(() => {
-    if (!choosing) return;
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape" && !dlBusy) setChoosing(false); };
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [choosing, dlBusy]);
 
   function pickFile(f: File | null) { setFile(f); setError(""); }
 
@@ -160,17 +158,11 @@ export default function Convert() {
         <section className="panel-card" key="template">
           <h2>Choose a sample</h2>
           <p className="sub">Your resume was read{parsed ? ` (${parsed.lines.length} lines)` : ""}. Pick the look you want. You can try others later.</p>
+          <p className="muted" style={{ marginTop: -14, marginBottom: 16 }}>Hover over a sample to preview your resume in it or download it.</p>
           <div className="grid" role="radiogroup" aria-label="Samples">
             {TEMPLATES.map((t) => (
-              <button type="button" key={t.id} className="tpl" role="radio" aria-checked={t.id === tpl} aria-pressed={t.id === tpl} onClick={() => setTpl(t.id)}>
-                <div className="thumb">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/thumbs/${t.id}.png`} alt={`${t.name} sample preview`} loading="lazy" />
-                  <span className="pick" aria-hidden="true">✓</span>
-                </div>
-                <span className="tname">{t.id}. {t.name}</span>
-                <span className="tdesc">{t.desc}</span>
-              </button>
+              <SampleCard key={t.id} t={t} selected={t.id === tpl} onSelect={() => setTpl(t.id)}
+                onPreview={() => setPreviewId(t.id)} onDownload={() => { setTpl(t.id); setDlError(""); setChoosing(true); }} />
             ))}
           </div>
           <div className="row between">
@@ -271,29 +263,16 @@ export default function Convert() {
         </section>
       )}
 
+      {previewId !== null && data && (
+        <SamplePreview id={previewId} data={data} isOwn onChange={setPreviewId} onClose={() => setPreviewId(null)}
+          useLabel="Use this sample →"
+          onUse={() => { setTpl(previewId); setPreviewId(null); go("result"); }}
+          onDownload={() => { setTpl(previewId); setPreviewId(null); setDlError(""); setChoosing(true); }} />
+      )}
+
       {choosing && (
-        <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="dl-title" onClick={() => !dlBusy && setChoosing(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3 id="dl-title">Download your resume</h3>
-            <p className="muted">Choose a format.</p>
-            <div className="formats">
-              <button type="button" className="fmt" disabled={!!dlBusy} onClick={() => download("pdf")} autoFocus>
-                <span className="fi pdf">PDF</span><div><b>PDF</b><span>Best for emailing and job portals</span></div>
-                {dlBusy === "pdf" && <span className="spinner" aria-label="Preparing" />}
-              </button>
-              <button type="button" className="fmt" disabled={!!dlBusy} onClick={() => download("docx")}>
-                <span className="fi doc">DOC</span><div><b>Word (.docx)</b><span>Editable; what most vendors ask for</span></div>
-                {dlBusy === "docx" && <span className="spinner" aria-label="Preparing" />}
-              </button>
-              <button type="button" className="fmt" disabled={!!dlBusy} onClick={() => download("both")}>
-                <span className="fi both">ALL</span><div><b>Both</b><span>PDF and Word together</span></div>
-                {dlBusy === "both" && <span className="spinner" aria-label="Preparing" />}
-              </button>
-            </div>
-            {dlError && <p className="err" style={{ marginTop: 10 }}>{dlError}</p>}
-            <div className="row end"><button type="button" className="btn" disabled={!!dlBusy} onClick={() => setChoosing(false)}>Cancel</button></div>
-          </div>
-        </div>
+        <DownloadDialog busy={dlBusy} error={dlError} onPick={download} onClose={() => setChoosing(false)}
+          note={`Sample ${template.id}. ${template.name}. Choose a format.`} />
       )}
     </main>
   );
