@@ -1,6 +1,6 @@
 // Service worker: makes the site installable and keeps pages and assets available offline.
 // Resume processing (/api) always needs the network and is never cached.
-const CACHE = "rtw-v2";
+const CACHE = "rtw-v3";
 const CORE = ["/", "/convert", "/samples", "/privacy", "/icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
