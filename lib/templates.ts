@@ -120,19 +120,19 @@ export type { Template };
         const lbl = "Client: ";
         if (t.cl === "right") {
           head.push(rightRow({ text: lbl + joinLoc(c), bold: true }, { text: c.dates, bold: true }));
-          if (c.role) head.push({ text: "Role: " + c.role, italics: true });
+          if (c.role) head.push({ text: "Role: " + c.role });
         } else if (t.cl === "below") {
           head.push({ text: lbl + joinLoc(c), bold: true });
-          if (c.role) head.push({ text: c.role, italics: true });
+          if (c.role) head.push({ text: c.role });
           if (c.dates) head.push({ text: c.dates, color: "#555555" });
         } else if (t.cl === "caps") {
           head.push(rightRow({ text: joinLoc({ client: (c.client || "").toUpperCase(), location: c.location }), bold: true }, { text: c.dates, bold: true }));
-          if (c.role) head.push({ text: c.role, italics: true });
+          if (c.role) head.push({ text: c.role });
         } else if (t.cl === "oneline") {
           head.push({ text: [joinLoc(c), c.role, c.dates].filter(Boolean).join("  |  "), bold: true });
         } else if (t.cl === "rolefirst") {
           head.push(rightRow({ text: c.role || "", bold: true }, { text: c.dates, bold: true }));
-          head.push({ text: lbl + joinLoc(c), italics: true });
+          head.push({ text: lbl + joinLoc(c) });
         }
         const desc = nonEmpty(c.description), resp = nonEmpty(c.responsibilities);
         // Keep the client header with what follows it (description or the Responsibilities label).
@@ -245,19 +245,19 @@ export type { Template };
         const first = function (runs, extra) { const o = { extra: Object.assign({}, keep, extra || {}), spacing: { before: before } }; return para(runs, o); };
         if (t.cl === "right") {
           P.push(first([run("Client: " + joinLoc(c), { bold: true }), run("\t" + (c.dates || ""), { bold: true })], { tabStops: rightTab }));
-          if (c.role) P.push(para([run("Role: " + c.role, { italics: true })], { extra: keep }));
+          if (c.role) P.push(para([run("Role: " + c.role, {})], { extra: keep }));
         } else if (t.cl === "below") {
           P.push(first([run("Client: " + joinLoc(c), { bold: true })]));
-          if (c.role) P.push(para([run(c.role, { italics: true })], { extra: keep }));
+          if (c.role) P.push(para([run(c.role, {})], { extra: keep }));
           if (c.dates) P.push(para([run(c.dates, { color: "555555" })], { extra: keep }));
         } else if (t.cl === "caps") {
           P.push(first([run(joinLoc({ client: (c.client || "").toUpperCase(), location: c.location }), { bold: true }), run("\t" + (c.dates || ""), { bold: true })], { tabStops: rightTab }));
-          if (c.role) P.push(para([run(c.role, { italics: true })], { extra: keep }));
+          if (c.role) P.push(para([run(c.role, {})], { extra: keep }));
         } else if (t.cl === "oneline") {
           P.push(first([run([joinLoc(c), c.role, c.dates].filter(Boolean).join("  |  "), { bold: true })]));
         } else if (t.cl === "rolefirst") {
           P.push(first([run(c.role || "", { bold: true }), run("\t" + (c.dates || ""), { bold: true })], { tabStops: rightTab }));
-          P.push(para([run("Client: " + joinLoc(c), { italics: true })], { extra: keep }));
+          P.push(para([run("Client: " + joinLoc(c), {})], { extra: keep }));
         }
         nonEmpty(c.description).forEach(function (d) { P.push(para([run(d)], { spacing: { before: 20, after: 40 } })); });
         const resp = nonEmpty(c.responsibilities);
