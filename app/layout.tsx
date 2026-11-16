@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply the saved theme before the page paints, so there is no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("rtw-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}` }} />
+      </head>
       <body>
         <SiteHeader />
         {children}

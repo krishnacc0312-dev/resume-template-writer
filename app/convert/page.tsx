@@ -6,6 +6,7 @@ import { verify } from "@/lib/verify";
 import Editor, { addTo, targetsFor } from "@/components/Editor";
 import Preview, { renderFile } from "@/components/Preview";
 import SampleCard from "@/components/SampleCard";
+import SamplesGallery from "@/components/SamplesGallery";
 import SamplePreview from "@/components/SamplePreview";
 import DownloadDialog from "@/components/DownloadDialog";
 
@@ -150,6 +151,12 @@ export default function Convert() {
             <button type="button" className="btn primary big" onClick={next} disabled={busy}>
               {busy ? <><span className="spinner" aria-hidden="true" />Reading your resume…</> : "Next →"}
             </button>
+          </div>
+
+          <div className="mini-gallery">
+            <h3>Browse the samples</h3>
+            <p className="muted">Hover over a sample to preview or download it. Click one to choose it now ({template.id}. {template.name} is selected). You can change it after uploading.</p>
+            <SamplesGallery selected={tpl} onSelect={setTpl} />
           </div>
         </section>
       )}

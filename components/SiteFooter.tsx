@@ -13,7 +13,7 @@ export default function SiteFooter() {
             <h4>Product</h4>
             <ul>
               <li><Link href="/convert">Convert a resume</Link></li>
-              <li><Link href="/#samples">Samples</Link></li>
+              <li><Link href="/samples">Samples</Link></li>
               <li><Link href="/#how">How it works</Link></li>
             </ul>
           </div>
