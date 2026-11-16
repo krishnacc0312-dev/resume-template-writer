@@ -9,6 +9,7 @@ import SampleCard from "@/components/SampleCard";
 import SamplesGallery from "@/components/SamplesGallery";
 import SamplePreview from "@/components/SamplePreview";
 import DownloadDialog from "@/components/DownloadDialog";
+import Flags from "@/components/Flags";
 
 type Step = "input" | "template" | "result" | "done";
 import type { Format } from "@/components/DownloadDialog";
@@ -204,6 +205,8 @@ export default function Convert() {
             )}
             {!report.ok && !editing && <p>Use <b>Edit</b> to fix anything before downloading.</p>}
           </div>
+
+          <Flags data={data} />
 
           {report.missing.length > 0 && (
             <div className="panel">
